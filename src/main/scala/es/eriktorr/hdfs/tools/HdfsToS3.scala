@@ -10,13 +10,13 @@ import org.apache.hadoop.util.ToolRunner
 import scala.jdk.CollectionConverters._
 
 final class HdfsToS3(hdfsConfig: HdfsConfig, awsConfig: AwsConfig) {
-  def copyFile(sourcePath: HdfsPath, targetPath: S3Path): Unit =
-    copy(sourcePath, targetPath, syncFolder = false)
+  def copyFile(source: HdfsPath, destination: S3Path): Unit =
+    copy(source, destination, syncFolder = false)
 
-  def syncFolder(sourcePath: HdfsPath, targetPath: S3Path): Unit =
-    copy(sourcePath, targetPath, syncFolder = true)
+  def syncFolder(source: HdfsPath, destination: S3Path): Unit =
+    copy(source, destination, syncFolder = true)
 
-  private[this] def copy(sourcePath: HdfsPath, targetPath: S3Path, syncFolder: Boolean): Unit = {
+  private[this] def copy(source: HdfsPath, destination: S3Path, syncFolder: Boolean): Unit = {
     val configuration = new Configuration
     /* See more details about Hadoop configuration in:
      * https://hadoop.apache.org/docs/r2.6.5/hadoop-project-dist/hadoop-common/core-default.xml */
@@ -30,7 +30,7 @@ final class HdfsToS3(hdfsConfig: HdfsConfig, awsConfig: AwsConfig) {
     configuration.set(Constants.PATH_STYLE_ACCESS, "true")
 
     val distCpOptions =
-      new DistCpOptions.Builder(Seq(new Path(sourcePath.value)).asJava, new Path(targetPath.value))
+      new DistCpOptions.Builder(Seq(new Path(source.value)).asJava, new Path(destination.value))
         .withDeleteMissing(syncFolder)
         .withDirectWrite(true)
         .withOverwrite(true)
@@ -39,7 +39,7 @@ final class HdfsToS3(hdfsConfig: HdfsConfig, awsConfig: AwsConfig) {
 
     val distCp = new DistCp(configuration, distCpOptions)
 
-    val exitCode = ToolRunner.run(distCp, Array(sourcePath.value, targetPath.value))
+    val exitCode = ToolRunner.run(distCp, Array(source.value, destination.value))
     require(exitCode == 0, s"Operation failed with exit code ${exitCode.toString}")
   }
 }
