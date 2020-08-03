@@ -1,3 +1,5 @@
+import wartremover.{Wart, Warts}
+
 maintainer := "etserrano@gmail.com"
 organization := "es.eriktorr"
 name := "hdfs-to-s3"
@@ -15,7 +17,7 @@ libraryDependencies ++= Seq(
   "org.apache.hadoop" % "hadoop-mapreduce-client-common" % HadoopVersion,
   "org.slf4j" % "slf4j-log4j12" % "1.7.30",
   "org.typelevel" %% "cats-effect" % "2.1.4",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+  "io.chrisdavenport" %% "log4cats-slf4j" % "1.1.1",
   "org.scalatest" %% "scalatest" % "3.2.0" % Test,
   "org.scoverage" %% "scalac-scoverage-runtime" % "1.4.1" % Test
 )
@@ -41,8 +43,18 @@ javacOptions ++= Seq(
 
 scalafmtOnCompile := true
 
-wartremoverErrors ++= Warts.unsafe
-wartremoverWarnings ++= Warts.unsafe
+val warts = Warts.allBut(
+  Wart.Any,
+  Wart.Nothing,
+  Wart.Equals,
+  Wart.DefaultArguments,
+  Wart.Overloading,
+  Wart.ToString,
+  Wart.ImplicitParameter
+)
+
+wartremoverErrors ++= warts
+wartremoverWarnings ++= warts
 
 Test / envFileName := ".env_test"
 envVars in Test := (envFromFile in Test).value
@@ -59,6 +71,6 @@ lazy val root = (project in file("."))
   .enablePlugins(BuildInfoPlugin)
   .settings(
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "es.eriktorr.ftp",
+    buildInfoPackage := "es.eriktorr.hdfs.tools",
     buildInfoOptions := Seq(BuildInfoOption.BuildTime)
   )
