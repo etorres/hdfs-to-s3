@@ -37,10 +37,10 @@ class HdfsToS3Test extends AsyncFreeSpec with TypeCheckedTripleEquals {
     }
 
     def withDefaultContext(f: HdfsToS3Context => IO[Unit]): IO[Unit] = {
-      val programResource = for {
-        context <- HdfsToS3Context()
+      val contextResource = for {
+        context <- HdfsToS3Context(None)
       } yield context
-      runTest(programResource)(f)
+      runTest(contextResource)(f)
     }
 
     def runTest(context: Resource[IO, HdfsToS3Context])(f: HdfsToS3Context => IO[Unit]): IO[Unit] =

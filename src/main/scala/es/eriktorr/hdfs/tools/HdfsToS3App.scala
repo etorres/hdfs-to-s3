@@ -1,28 +1,26 @@
 package es.eriktorr.hdfs.tools
 
-import cats.effect.{Blocker, ExitCode, IO, IOApp, Resource}
+import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import cats.implicits._
 import es.eriktorr.hdfs.tools.effects.ErrorHandlingSyntax._
-import es.eriktorr.hdfs.tools.model.{HdfsPath, S3Path}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
-object HdfsToS3App extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] = {
-    def programResource: Resource[IO, HdfsToS3Context] =
-      for {
-        context <- HdfsToS3Context()
-      } yield context
-
+object HdfsToS3App extends IOApp with OptionParser {
+  override def run(args: List[String]): IO[ExitCode] =
     for {
-      logger <- Slf4jLogger.fromName[IO]("hdfs-to-s3")
+      logger <- Slf4jLogger.fromName[IO]("hdfsToS3")
       _ <- logger.info(
         s"${BuildInfo.name}, version ${BuildInfo.version}, built at ${BuildInfo.builtAtString}"
       )
+      params <- HdfsToS3Params.from(args)(logger)
+      contextResource = for {
+        context <- HdfsToS3Context(params.configFile)
+      } yield context
       result <- Blocker[IO].use { blocker =>
         for {
           exitCode <- blocker.blockOn {
-            programResource
-              .use(_.hdfsToS3.syncFolder(HdfsPath(""), S3Path("")))
+            contextResource
+              .use(_.hdfsToS3.syncFolder(params.source, params.destination))
               .as(ExitCode.Success)
               .logErrors(logger)
               .handleError(_ => ExitCode.Error)
@@ -31,5 +29,4 @@ object HdfsToS3App extends IOApp {
       }
       _ <- logger.info("Goodbye.")
     } yield result
-  }
 }
