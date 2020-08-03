@@ -19,7 +19,7 @@ trait OptionParser {
         case "-dest" :: value :: tail =>
           optionMap(parsedOptions ++ Map(Symbol("destination") -> value), tail)
         case ::(value, next) =>
-          logger.warn(s"Unknown option ignored: $value")
+          logger.warn(s"Unknown option ignored: $value").ignoreImpureResult()
           optionMap(parsedOptions, next)
         case Nil => parsedOptions
       }

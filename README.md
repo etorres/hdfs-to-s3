@@ -2,6 +2,42 @@
 
 TO-DO
 
+## Contributing to the project
+
+### Configuring your environment
+
+TO-DO
+
+### Building and testing this project with specific Java version (using [jenv](https://www.jenv.be/))
+
+This command will run the tests with enabled coverage as configured in [build.sbt](build.sbt):
+
+```shell script
+jenv exec sbt clean test
+```
+
+#### To generate the coverage reports run
+
+```shell script
+jenv exec sbt coverageReport
+```
+
+### Listing dependencies of this project
+
+```shell script
+jenv exec sbt dependencyTree
+```
+
+```shell script
+jenv exec sbt dependencyBrowseGraph
+```
+
+## Building distribution from source code
+
+```shell script
+jenv exec sbt universal:packageBin
+```
+
 ## Useful Hadoop commands
 
 ```shell script

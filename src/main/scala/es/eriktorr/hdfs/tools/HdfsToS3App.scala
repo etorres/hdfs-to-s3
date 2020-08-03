@@ -2,7 +2,6 @@ package es.eriktorr.hdfs.tools
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import cats.implicits._
-import es.eriktorr.hdfs.tools.effects.ErrorHandlingSyntax._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 object HdfsToS3App extends IOApp with OptionParser {
