@@ -61,7 +61,7 @@ envVars in Test := (envFromFile in Test).value
 
 coverageMinimum := 80
 coverageFailOnMinimum := true
-coverageEnabled := true
+coverageEnabled := false
 coverageExcludedPackages := "es\\.eriktorr\\.ftp\\.BuildInfo"
 
 enablePlugins(JavaServerAppPackaging)
