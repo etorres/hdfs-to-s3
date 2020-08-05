@@ -15,8 +15,8 @@ trait OptionParser {
           optionMap(parsedOptions ++ Map(Symbol("destination") -> value), tail)
         case ::(value, next) =>
           optionMap(
-            parsedOptions + (OptionParser.garbage -> (parsedOptions
-              .get(OptionParser.garbage) match {
+            parsedOptions + (OptionParser.unknown -> (parsedOptions
+              .get(OptionParser.unknown) match {
               case Some(old) => s"$old, $value"
               case None => value
             })),
@@ -29,5 +29,5 @@ trait OptionParser {
 }
 
 object OptionParser {
-  val garbage: Symbol = Symbol("garbage")
+  val unknown: Symbol = Symbol("unknown")
 }
