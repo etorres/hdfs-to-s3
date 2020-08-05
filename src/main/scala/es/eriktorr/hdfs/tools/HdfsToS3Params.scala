@@ -17,7 +17,7 @@ object HdfsToS3Params extends OptionParser {
       destination <- paramFrom(options, "destination")
       _ <- options.get(OptionParser.unknown) match {
         case Some(value) => logger.warn(s"Unknown options ignored: $value")
-        case None => IO.pure(())
+        case None => IO.unit
       }
     } yield new HdfsToS3Params(configFile, HdfsPath(source), S3Path(destination))
   }
