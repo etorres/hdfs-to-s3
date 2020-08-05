@@ -1,31 +1,55 @@
 package es.eriktorr.hdfs.tools
 
+import cats.effect.{Blocker, ContextShift, IO, Resource}
 import es.eriktorr.hdfs.tools.model.{HdfsPath, S3Path}
 import org.scalactic.TypeCheckedTripleEquals
 import org.scalatest.freespec.AsyncFreeSpec
 
+import scala.concurrent.ExecutionContext
+
 class HdfsToS3Test extends AsyncFreeSpec with TypeCheckedTripleEquals {
+  implicit private[this] val contextShift: ContextShift[IO] =
+    IO.contextShift(ExecutionContext.global)
+
   "HDFS to S3 should" - {
     "copy a single file" in {
-      val context = ApplicationContextLoader.defaultApplicationContext
-      val hdfsToS3 = new HdfsToS3(context.hdfsConfiguration, context.awsConfiguration)
-      val result: Unit = hdfsToS3.copyFile(
-        HdfsPath("/dir/file.txt"),
-        /* Path: s3://eriktorr.es/testing-hdfs-to-s3/file.txt
-         * Object URL: https://s3-eu-west-1.amazonaws.com/eriktorr.es/testing-hdfs-to-s3/file.txt */
-        S3Path("s3a://eriktorr.es/testing-hdfs-to-s3/file.txt")
+      assert(
+        withDefaultContext(
+          _.hdfsToS3.copyFile(
+            HdfsPath("/dir/file.txt"),
+            /* Path: s3://eriktorr.es/testing-hdfs-to-s3/file.txt
+             * Object URL: https://s3-eu-west-1.amazonaws.com/eriktorr.es/testing-hdfs-to-s3/file.txt */
+            S3Path("s3a://eriktorr.es/testing-hdfs-to-s3/file.txt")
+          )
+        ).unsafeRunSync() === {}
       )
-      assert(result === {})
     }
 
     "sync a directory" in {
-      val context = ApplicationContextLoader.defaultApplicationContext
-      val hdfsToS3 = new HdfsToS3(context.hdfsConfiguration, context.awsConfiguration)
-      val result: Unit = hdfsToS3.copyFile(
-        HdfsPath("/dir/"),
-        S3Path("s3a://eriktorr.es/testing-hdfs-to-s3/")
+      assert(
+        withDefaultContext(
+          _.hdfsToS3.syncFolder(
+            HdfsPath("/dir/"),
+            S3Path("s3a://eriktorr.es/testing-hdfs-to-s3/")
+          )
+        ).unsafeRunSync() === {}
       )
-      assert(result === {})
     }
+
+    def withDefaultContext(f: HdfsToS3Context => IO[Unit]): IO[Unit] = {
+      val contextResource = for {
+        context <- HdfsToS3Context(None)
+      } yield context
+      runTest(contextResource)(f)
+    }
+
+    def runTest(context: Resource[IO, HdfsToS3Context])(f: HdfsToS3Context => IO[Unit]): IO[Unit] =
+      Blocker[IO].use { blocker =>
+        for {
+          result <- blocker.blockOn {
+            context.use(f)
+          }
+        } yield result
+      }
   }
 }
