@@ -4,7 +4,7 @@ import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
-object HdfsToS3App extends IOApp with OptionParser {
+object HdfsToS3App extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     for {
       logger <- Slf4jLogger.fromName[IO]("hdfsToS3")

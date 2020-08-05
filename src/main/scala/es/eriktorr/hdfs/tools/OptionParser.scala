@@ -1,14 +1,9 @@
 package es.eriktorr.hdfs.tools
 
-import cats.effect.IO
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-
 import scala.annotation.tailrec
 
 trait OptionParser {
-  def optionsFrom(
-    args: List[String]
-  )(implicit logger: SelfAwareStructuredLogger[IO]): IO[OptionMap] = IO {
+  def optionsFrom(args: List[String]): OptionMap = {
     @tailrec
     def optionMap(parsedOptions: OptionMap, argsList: List[String]): OptionMap =
       argsList match {
@@ -19,10 +14,20 @@ trait OptionParser {
         case "-dest" :: value :: tail =>
           optionMap(parsedOptions ++ Map(Symbol("destination") -> value), tail)
         case ::(value, next) =>
-          logger.warn(s"Unknown option ignored: $value").ignoreImpureResult()
-          optionMap(parsedOptions, next)
+          optionMap(
+            parsedOptions + (OptionParser.garbage -> (parsedOptions
+              .get(OptionParser.garbage) match {
+              case Some(old) => s"$old, $value"
+              case None => value
+            })),
+            next
+          )
         case Nil => parsedOptions
       }
     optionMap(Map(), args)
   }
+}
+
+object OptionParser {
+  val garbage: Symbol = Symbol("garbage")
 }
